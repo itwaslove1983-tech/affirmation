@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>긍정 확언 명상카드 · 단일 파일</title>
+  <style>
+    :root{
+      --bg1:#0e1b2b; --bg2:#09131d; --glass:rgba(255,255,255,.08);
+      --ink:#eaf0f7; --muted:#b7c0cc; --accent:#7dd3fc; --accent2:#c4b5fd;
+      --border:rgba(255,255,255,.18);
+    }
+    body{margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:var(--ink);font-family:Inter,Pretendard,sans-serif;}
+    header{position:sticky;top:0;backdrop-filter:blur(10px);background:rgba(0,0,0,.4);}
+    .wrap{max-width:1080px;margin:0 auto;padding:18px 16px}
+    .title h1{margin:0;font-size:22px;font-weight:900}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .toolbar button{border:none;background:var(--glass);color:inherit;
+      padding:10px 12px;border-radius:12px;cursor:pointer}
+    .toolbar .primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:white}
+    .main{display:grid;grid-template-columns:1fr;gap:16px;padding:16px}
+    .stage{display:flex;justify-content:center;align-items:center;min-height:480px}
+    .card{width:min(780px,95vw);min-height:420px;perspective:1200px}
+    .card-inner{position:relative;width:100%;min-height:420px;transform-style:preserve-3d;transition:transform .7s}
+    .card.flipped .card-inner{transform:rotateY(180deg)}
+    .face{position:absolute;inset:0;display:grid;grid-template-rows:56% 44%;
+      border-radius:22px;background:var(--glass);backface-visibility:hidden}
+    .back{transform:rotateY(180deg)}
+    .photo{position:relative;overflow:hidden;border-radius:18px}
+    .photo img{width:100%;height:100%;object-fit:cover}
+    .content{padding:12px}
+    .aff{font-size:28px;font-weight:800;line-height:1.4}
+    .sub{font-size:15px;color:var(--muted)}
+    .sound-gate{position:fixed;inset:auto 16px 16px 16px;display:none;
+      gap:10px;align-items:center;justify-content:center;padding:12px 14px;
+      background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+      border:1px solid var(--border);border-radius:14px;color:#fff;z-index:50}
+    .sound-gate.show{display:flex}
+    .sound-gate button{border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));
+      color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="title">
+      <h1>긍정 확언 명상카드 — 단일 파일</h1>
+    </div>
+    <div class="toolbar">
+      <button id="btnPrev">⬅️ 이전</button>
+      <button id="btnFlip">🔄 뒤집기</button>
+      <button id="btnNext" class="primary">다음 ➡️</button>
+      <button id="btnShuffle">🔀 섞기</button>
+      <button id="btnTheme">🌙/☀️ 테마</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="stage">
+    <article class="card" id="card">
+      <div class="card-inner">
+        <div class="face front">
+          <div class="photo"><img id="photoFront" alt="자연 사진" /></div>
+          <div class="content">
+            <div class="aff" id="affText">오늘의 나는 차분하고 선명한 마음으로 하루를 시작한다.</div>
+            <div class="sub" id="affSub">작은 한 걸음이 모여 큰 변화를 만든다.</div>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="photo"><img id="photoBack" alt="자연 사진" /></div>
+          <div class="content">
+            <div class="aff" id="tipText">4-4-6 호흡: 4초 들숨 · 4초 멈춤 · 6초 날숨</div>
+            <div class="sub" id="tipSub">세 번 반복하며 오늘의 가장 중요한 한 가지를 떠올립니다.</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</main>
+
+<div id="soundGate" class="sound-gate">
+  🔈 브라우저가 자동재생을 막았습니다.
+  <button id="btnEnableSound">소리 켜기</button>
+</div>
+
+<audio id="natureSound" loop preload="auto" playsinline></audio>
+
+<script>
+const IMG = {
+  sunrise:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1600&auto=format&fit=crop",
+  sea:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600&auto=format&fit=crop",
+  forest:"https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1600&auto=format&fit=crop"
+};
+
+const DECK = [
+  { aff:"오늘의 나는 차분하고 선명한 마음으로 하루를 시작한다.",
+    sub:"작은 한 걸음이 모여 큰 변화를 만든다.",
+    tip:"아침 첫 10분 집중.",
+    tipSub:"목표를 적고 상상.",
+    img:'sunrise',
+    sound:"https://cdn.pixabay.com/download/audio/2021/08/04/audio_c3d7fa87f6.mp3?filename=morning-birds-ambient-6311.mp3"},
+  { aff:"나는 오늘 만날 모든 이에게 친절과 여유를 건넨다.",
+    sub:"내가 보인 친절은 되돌아온다.",
+    tip:"문 앞에서 미소.",
+    tipSub:"먼저 인사하기.",
+    img:'sea',
+    sound:"https://cdn.pixabay.com/download/audio/2022/03/15/audio_c1b81e7fa2.mp3?filename=ocean-waves-ambient-110624.mp3"},
+  { aff:"나는 지금 이 순간에 머문다.",
+    sub:"잡념이 떠오르면 부드럽게 놓아준다.",
+    tip:"3-3-3 주의 환기.",
+    tipSub:"현재로 돌아오기.",
+    img:'forest',
+    sound:"https://cdn.pixabay.com/download/audio/2022/02/15/audio_8a71c5d0f1.mp3?filename=forest-nature-ambient-110602.mp3"}
+];
+
+let idx=0;
+const player=document.getElementById('natureSound'); player.volume=0.7;
+const gate=document.getElementById('soundGate');
+
+function tryPlay(){return player.play().then(()=>gate.classList.remove('show'))
+                                  .catch(()=>gate.classList.add('show'));}
+
+function render(){
+  const it=DECK[idx];
+  document.getElementById('affText').textContent=it.aff;
+  document.getElementById('affSub').textContent=it.sub;
+  document.getElementById('tipText').textContent=it.tip;
+  document.getElementById('tipSub').textContent=it.tipSub;
+  document.getElementById('photoFront').src=IMG[it.img];
+  document.getElementById('photoBack').src=IMG[it.img];
+  if(player.src!==it.sound){player.src=it.sound;}
+  tryPlay();
+}
+
+function flip(){document.getElementById('card').classList.toggle('flipped');}
+function next(){idx=(idx+1)%DECK.length;document.getElementById('card').classList.remove('flipped');render();}
+function prev(){idx=(idx-1+DECK.length)%DECK.length;document.getElementById('card').classList.remove('flipped');render();}
+
+render();
+['click','touchstart','keydown'].forEach(evt=>{
+  window.addEventListener(evt,()=>{if(gate.classList.contains('show')) tryPlay();});
+});
+document.getElementById('btnEnableSound').addEventListener('click',tryPlay);
+
+document.getElementById('btnFlip').onclick=flip;
+document.getElementById('btnNext').onclick=next;
+document.getElementById('btnPrev').onclick=prev;
+document.getElementById('btnShuffle').onclick=()=>{DECK.sort(()=>Math.random()-.5);idx=0;render();};
+document.getElementById('btnTheme').onclick=()=>{document.body.classList.toggle('light');};
+</script>
+</body>
+</html>
